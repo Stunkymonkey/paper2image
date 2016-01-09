@@ -16,14 +16,17 @@ except:
 parser = OptionParser()
 parser.add_option("-i", "--image", type="string", dest="image",
                   help="Path of image which will be scanned")
-parser.add_option("-c", "--colorless", action="store_true", dest="colorless",
+parser.add_option("-g", "--grayscale", action="store_true", dest="grayscale",
                   default=False, help="only having black and white")
+parser.add_option("-v", "--verbose", action="store_true", dest="verbose",
+                  default=False, help="showing the results")
 
 (options, args) = parser.parse_args()
 image = options.image
 if image is None:
     sys.exit("No image given")
-colorless = bool(options.colorless)
+grayscale = bool(options.grayscale)
+verbose = bool(options.verbose)
 
 
 def detectEdges(edged):
@@ -93,11 +96,12 @@ def calculatePicture(image):
     M = cv2.getPerspectiveTransform(polygon, target)
     # print(M)
     warped = cv2.warpPerspective(img, M, (x, y))
-    if colorless:
+    if grayscale:
         warped = blackAndWhite(warped)
     output = image.split(".")[0] + "-image.jpeg"
     cv2.imwrite(output, warped)
-    displayOutput(img, body, warped)
+    if verbose:
+        displayOutput(img, body, warped)
 
 
 if __name__ == '__main__':
