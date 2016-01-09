@@ -39,7 +39,11 @@ def detectEdges(edged):
 
 def readImage(image):
     """ reads the image """
-    return cv2.imread(image)
+    try:
+        img = cv2.imread(image)
+    except:
+        sys.exit("No image found")
+    return img
 
 
 def imageDetail(img):

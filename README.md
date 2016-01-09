@@ -1,5 +1,5 @@
 # paper2image
-detect papers in pictures and cuts of the unseless infos
+detect papers in pictures and cuts of the useless infos
 
 ```
 Usage: paper2image.py [options]
@@ -11,3 +11,11 @@ Options:
   -g, --grayscale       only having black and white
   -v, --verbose         showing the results
   ```
+The original file:
+<img src="https://github.com/Stunkymonkey/paper2image/blob/master/demo.jpeg" width="256">
+
+The output of `python2.7 paper2image.py -i demo.jpeg` (only the paper):
+<img src="https://github.com/Stunkymonkey/paper2image/blob/master/demo-image.jpeg" width="256">
+
+The output of `python2.7 paper2image.py -i demo.jpeg -g` (converting colors to black and white):
+<img src="https://github.com/Stunkymonkey/paper2image/blob/master/demo-gray.jpeg" width="256">
