@@ -62,9 +62,45 @@ def getPolygon(conturs):
         approx = cv2.approxPolyDP(line, 0.02 * peri, True)
         if len(approx) == 4:
             # print(approx)
-            return approx
+            return approx.reshape(4, 2)
     else:
         sys.exit("no paper found")
+
+
+def order_points(points):
+    """ get the correct order of the points"""
+    rect = np.zeros((4, 2), dtype="float32")
+
+    # the top-left point will have the smallest sum, and
+    # the bottom-right point will have the largest sum
+    s = points.sum(axis=1)
+    rect[0] = points[np.argmin(s)]
+    rect[2] = points[np.argmax(s)]
+
+    # the difference between the points,
+    # the top-right point will have the smallest difference,
+    # and the bottom-left will have the largest difference
+    diff = np.diff(points, axis=1)
+    rect[1] = points[np.argmin(diff)]
+    rect[3] = points[np.argmax(diff)]
+
+    return rect
+
+
+def getNewSize(rect):
+    """ get the size of the new image """
+    (tl, tr, br, bl) = rect
+
+    # max((br - bl), (tr - tl)) = x
+    widthB = np.sqrt(((br[0] - bl[0]) ** 2) + ((br[1] - bl[1]) ** 2))
+    widthT = np.sqrt(((tr[0] - tl[0]) ** 2) + ((tr[1] - tl[1]) ** 2))
+    maxWidth = max(int(widthB), int(widthT))
+
+    # max((tr - br), (tl - bl)) =  y
+    heightR = np.sqrt(((tr[0] - br[0]) ** 2) + ((tr[1] - br[1]) ** 2))
+    heightL = np.sqrt(((tl[0] - bl[0]) ** 2) + ((tl[1] - bl[1]) ** 2))
+    maxHeight = max(int(heightR), int(heightL))
+    return maxWidth, maxHeight
 
 
 def blackAndWhite(warped):
@@ -74,9 +110,9 @@ def blackAndWhite(warped):
         gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 9)
 
 
-def displayOutput(img, body, warped):
+def displayOutput(img, points, warped):
     """ display windows """
-    cv2.drawContours(img, [body], -1, (0, 255, 0), 2)
+    cv2.drawContours(img, [points], -1, (0, 255, 0), 2)
     cv2.imshow("Paper", img)
     cv2.imshow("Outline", warped)
     cv2.waitKey(0)
@@ -88,24 +124,25 @@ def calculatePicture(image):
     img = readImage(image)
     gray, edged = imageDetail(img)
     conturs = detectEdges(edged)
-    body = getPolygon(conturs)
-    polygon = np.float32(body)
-    # TODO here the intelligent part for detecting the x and y of vertices
-    x = int(img.shape[1])
-    y = int(img.shape[0])
-    target = np.float32([[x, 0], [0, 0], [0, y], [x, y]])
-    # TODO here sorting the tuples or finding out why the order is like that
+    points = getPolygon(conturs)
+    rect = order_points(points)
+    maxWidth, maxHeight = getNewSize(rect)
+    polygon = np.float32(rect)
     # print(polygon)
+    target = np.float32([[0, 0],
+                         [maxWidth - 1, 0],
+                         [maxWidth - 1, maxHeight - 1],
+                         [0, maxHeight - 1]])
     # print(target)
     M = cv2.getPerspectiveTransform(polygon, target)
     # print(M)
-    warped = cv2.warpPerspective(img, M, (x, y))
+    warped = cv2.warpPerspective(img, M, (maxWidth, maxHeight))
     if grayscale:
         warped = blackAndWhite(warped)
     output = image.split(".")[0] + "-image.jpeg"
     cv2.imwrite(output, warped)
     if verbose:
-        displayOutput(img, body, warped)
+        displayOutput(img, points, warped)
 
 
 if __name__ == '__main__':
