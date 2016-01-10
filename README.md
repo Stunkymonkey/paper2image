@@ -12,10 +12,13 @@ Options:
   -v, --verbose         showing the results
   ```
 The original file:
+<br>
 <img src="https://github.com/Stunkymonkey/paper2image/blob/master/demo.jpeg" width="256">
 
 The output of `python2.7 paper2image.py -i demo.jpeg` (only the paper):
+<br>
 <img src="https://github.com/Stunkymonkey/paper2image/blob/master/demo-image.jpeg" width="256">
 
 The output of `python2.7 paper2image.py -i demo.jpeg -g` (converting colors to black and white):
+<br>
 <img src="https://github.com/Stunkymonkey/paper2image/blob/master/demo-gray.jpeg" width="256">
