@@ -18,6 +18,8 @@ parser.add_option("-i", "--image", type="string", dest="image",
                   help="Path of image which will be scanned")
 parser.add_option("-g", "--grayscale", action="store_true", dest="grayscale",
                   default=False, help="only having black and white")
+parser.add_option("-b", "--blur", action="store_true", dest="blur",
+                  default=False, help="gausian-blur the output")
 parser.add_option("-v", "--verbose", action="store_true", dest="verbose",
                   default=False, help="showing the results")
 
@@ -26,12 +28,13 @@ image = options.image
 if image is None:
     sys.exit("No image given")
 grayscale = bool(options.grayscale)
+blur = bool(options.blur)
 verbose = bool(options.verbose)
 
 
 def detectEdges(edged):
     """ gettings the coordinates to the conturs"""
-    (conturs, _) = cv2.findContours(
+    (_, conturs, _) = cv2.findContours(
         edged.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
     conturs = sorted(conturs, key=cv2.contourArea, reverse=True)[:5]
     return conturs
@@ -48,8 +51,12 @@ def readImage(image):
 
 def imageDetail(img):
     """ get edges and gray scale"""
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    gray = cv2.GaussianBlur(gray, (5, 5), 0)
+    if blur:
+        img = cv2.GaussianBlur(img, (7, 7), 0)
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    else:
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        gray = cv2.GaussianBlur(gray, (7, 7), 0)
     edged = cv2.Canny(gray, 75, 200)
     return gray, edged
 
@@ -107,7 +114,7 @@ def blackAndWhite(warped):
     """ making the image 'black or white' """
     gray = cv2.cvtColor(warped, cv2.COLOR_BGR2GRAY)
     return cv2.adaptiveThreshold(
-        gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 9)
+        gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 13, 9)
 
 
 def displayOutput(img, points, warped):
@@ -140,6 +147,7 @@ def calculatePicture(image):
     if grayscale:
         warped = blackAndWhite(warped)
     output = image.split(".")[0] + "-image.jpeg"
+    # output = image.split(".")[0] + "-image.png"
     cv2.imwrite(output, warped)
     if verbose:
         displayOutput(img, points, warped)
