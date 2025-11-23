@@ -15,7 +15,7 @@ except:
 # Parser
 parser = OptionParser()
 parser.add_option("-i", "--image", type="string", dest="image",
-                  help="Path of image which will be scanned")
+                  help="Path of image which will be scanned", metavar="FILE")
 parser.add_option("-g", "--grayscale", action="store_true", dest="grayscale",
                   default=False, help="only having black and white")
 parser.add_option("-b", "--blur", action="store_true", dest="blur",
